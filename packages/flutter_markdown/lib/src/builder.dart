@@ -719,6 +719,9 @@ class MarkdownBuilder implements md.NodeVisitor {
     return mergedTexts;
   }
 
+  /// Check current block tag
+  String? get currentBlockTag => _currentBlockTag;
+
   TextAlign _textAlignForBlockTag(String? blockTag) {
     final WrapAlignment wrapAlignment = _wrapAlignmentForBlockTag(blockTag);
     switch (wrapAlignment) {
