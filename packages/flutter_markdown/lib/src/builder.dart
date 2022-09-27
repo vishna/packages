@@ -106,6 +106,7 @@ class MarkdownBuilder implements md.NodeVisitor {
     this.fitContent = false,
     this.onTapText,
     this.softLineBreak = false,
+    this.customBlockTags = const <String>[],
   });
 
   /// A delegate that controls how link and `pre` elements behave.
@@ -157,6 +158,9 @@ class MarkdownBuilder implements md.NodeVisitor {
   /// specification on soft line breaks when lines of text are joined.
   final bool softLineBreak;
 
+  /// Tags of custom block syntaxes you might be used with this builder
+  final List<String> customBlockTags;
+
   final List<String> _listIndents = <String>[];
   final List<_BlockElement> _blocks = <_BlockElement>[];
   final List<_TableElement> _tables = <_TableElement>[];
@@ -202,6 +206,10 @@ class MarkdownBuilder implements md.NodeVisitor {
 
     if (paddingBuilders.containsKey(tag)) {
       paddingBuilders[tag]!.visitElementBefore(element);
+    }
+
+    if (customBlockTags.contains(tag)) {
+      return true;
     }
 
     int? start;
@@ -357,7 +365,12 @@ class MarkdownBuilder implements md.NodeVisitor {
   void visitElementAfter(md.Element element) {
     final String tag = element.tag;
 
-    if (_isBlockTag(tag)) {
+    if (customBlockTags.contains(tag)) {
+      final Widget? child = builders[tag]?.visitElementAfter(element, null);
+      if (child != null) {
+        _addBlockChild(child);
+      }
+    } else if (_isBlockTag(tag)) {
       _addAnonymousBlockIfNeeded();
 
       final _BlockElement current = _blocks.removeLast();
